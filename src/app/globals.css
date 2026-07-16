@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ---- Brand tokens (HSL for shadcn/ui semantic layer) ---- */
+    --background: 222 47% 11%; /* #0F172A page background */
+    --foreground: 213 27% 84%; /* slate-300 body text */
+
+    --card: 215 28% 17%; /* slate-800 base (surfaces use /40 opacity) */
+    --card-foreground: 213 27% 84%;
+
+    --muted: 215 25% 27%;
+    --muted-foreground: 215 16% 47%; /* slate-500 muted text */
+
+    --border: 215 25% 27%; /* slate-700 borders */
+    --input: 215 25% 27%;
+    --ring: 217 91% 60%; /* #3B82F6 primary focus ring */
+
+    --primary: 217 91% 60%; /* #3B82F6 primary CTA */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 213 27% 84%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 91% 71%; /* red-400 danger */
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: #0f172a;
+    color: #cbd5e1; /* slate-300 */
+    font-family: var(--font-nunito), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    color: #f1f5f9; /* slate-100 for heading contrast */
+  }
+}
+
+@layer components {
+  /* Card surface: slate-800 @ 40% opacity, slate-700 border */
+  .brand-card {
+    @apply rounded-xl border border-slate-700 bg-slate-800/40 backdrop-blur-sm;
+  }
+
+  /* Gradient text (wordmark, accents) */
+  .brand-gradient-text {
+    background-image: linear-gradient(135deg, #60a5fa, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Gradient fill surface (icon backgrounds, accent bars) */
+  .brand-gradient-surface {
+    background-image: linear-gradient(135deg, #60a5fa, #818cf8);
+  }
+}
