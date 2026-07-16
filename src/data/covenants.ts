@@ -181,3 +181,51 @@ export const covenantAlert = {
   hasEarlyWarning: covenantStatuses.some((s) => s.status === "projected_breach"),
   breachedCovenant: covenantStatuses.find((s) => s.status === "projected_breach"),
 };
+
+/**
+ * Overall covenant health for the dashboard "Covenant Health" stat card.
+ * Traffic light reflects the worst covenant state; the "tightest" covenant
+ * is the binding constraint — a projected breach if one exists, otherwise the
+ * covenant with the least current headroom.
+ */
+export type HealthLevel = "green" | "amber" | "red";
+
+const tightest: CovenantStatus =
+  covenantStatuses.find((s) => s.status === "projected_breach") ??
+  [...covenantStatuses].sort((a, b) => a.headroomPct - b.headroomPct)[0];
+
+function overallLevel(): HealthLevel {
+  // A current breach (latest actual already fails) is red.
+  const currentBreach = covenantStatuses.some((s) =>
+    s.operator === ">="
+      ? s.latestActual < s.threshold
+      : s.latestActual > s.threshold
+  );
+  if (currentBreach) return "red";
+  if (covenantStatuses.some((s) => s.status === "projected_breach")) return "amber";
+  if (covenantStatuses.some((s) => s.status === "watch")) return "amber";
+  return "green";
+}
+
+export const covenantHealth = {
+  level: overallLevel(),
+  tightest,
+  label: tightest.label,
+  currentValue: tightest.latestActual,
+  threshold: tightest.threshold,
+  operator: tightest.operator,
+  unit: tightest.unit,
+  breachPeriod: tightest.breachPeriod,
+  breachValue: tightest.breachValue,
+};
+
+/** Interest-coverage series for the dashboard covenant-alert trend chart. */
+export const interestCoverageSeries = covenantHistory.map((p) => ({
+  period: p.period,
+  label: p.label,
+  type: p.type,
+  value: p.interest_coverage,
+}));
+
+export const interestCoverageThreshold =
+  covenantDefinitions.find((d) => d.key === "interest_coverage")!.threshold;

@@ -39,6 +39,8 @@ export interface CloseChecklistItem {
   assigned_to: string;
   notes: string;
   completion_timestamp: string | null; // ISO 8601, null if not completed
+  amount?: number; // dollar exposure of the item (present on review items)
+  flagReason?: string; // short reason surfaced in "Needs Your Review"
 }
 
 export const closePeriod = "2026-06";
@@ -59,6 +61,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Auto-match complete: 23 of 31 items matched. 8 items require review — 4 outstanding checks, 2 deposits in transit, 1 unrecorded bank fee, 1 intercompany allocation. Adjusted bank ties to adjusted book at $341,847.17.",
     completion_timestamp: null,
+    amount: 5326.27,
+    flagReason: "Bank vs. GL gap ($5,326.27) — 8 reconciling items open",
   },
   {
     id: "CLS-02",
@@ -107,6 +111,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Final milestone billed 6/15 but two acceptance items still open with client. Percent-complete vs. point-in-time recognition needs CFO sign-off before booking.",
     completion_timestamp: null,
+    amount: 36000,
+    flagReason: "Recognition method needs CFO sign-off (2 acceptance items open)",
   },
   {
     id: "CLS-07",
@@ -135,6 +141,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Gathering hours-to-date on Meridian and Brightpath to true up WIP against milestone schedule. ~60% complete.",
     completion_timestamp: null,
+    amount: 28500,
+    flagReason: "WIP true-up in progress — hours-to-date being gathered",
   },
 
   // ---------------- Expense accruals ----------------
@@ -147,6 +155,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Meridian Dev Collective invoice ($7,800) for April work arrived in May and was flagged as an anomaly. Confirm it accrues to the correct prior period and is not double-counted.",
     completion_timestamp: null,
+    amount: 7800,
+    flagReason: "Late April contractor invoice — prior-period accrual (anomaly)",
   },
   {
     id: "CLS-11",
@@ -205,6 +215,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Allocation basis (headcount vs. revenue) changed this quarter. June IC-ALLOC amount ($3,450 provisional) unconfirmed — needs CFO approval before eliminating.",
     completion_timestamp: null,
+    amount: 3450,
+    flagReason: "IT/admin allocation basis changed — amount unconfirmed",
   },
   {
     id: "CLS-17",
@@ -224,6 +236,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Management fee and loan interest tie. Holding elimination open until CLS-16 allocation is confirmed.",
     completion_timestamp: null,
+    amount: 3450,
+    flagReason: "Elimination blocked pending CLS-16 allocation approval",
   },
 
   // ---------------- Payroll ----------------
@@ -283,6 +297,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "April $22,000 audit fee: decide whether to expense over the audit service period or in the month incurred. Treatment affects EBIT and the interest-coverage covenant — coordinate with CLS-30.",
     completion_timestamp: null,
+    amount: 22000,
+    flagReason: "Audit-fee amortization affects EBIT & interest-coverage covenant",
   },
 
   // ---------------- Fixed assets ----------------
@@ -352,6 +368,8 @@ export const closeChecklist: CloseChecklistItem[] = [
     notes:
       "Awaiting First Meridian Bank June statement to confirm outstanding principal before finalizing the covenant certificate.",
     completion_timestamp: null,
+    amount: 1372160,
+    flagReason: "Awaiting lender statement to confirm principal",
   },
 ];
 
@@ -395,3 +413,42 @@ export const closeCategoryLabels: Record<CloseCategory, string> = {
   fixed_assets: "Fixed Assets",
   debt: "Debt",
 };
+
+export interface CloseCategoryProgress {
+  category: CloseCategory;
+  label: string;
+  completed: number; // auto_completed
+  remaining: number; // everything not yet auto_completed
+  total: number;
+}
+
+/** Per-category completed vs. remaining, for the close completion bar chart. */
+export const closeByCategory: CloseCategoryProgress[] = closeCategories.map(
+  (category) => {
+    const items = closeChecklist.filter((i) => i.category === category);
+    const completed = items.filter((i) => i.status === "auto_completed").length;
+    return {
+      category,
+      label: closeCategoryLabels[category],
+      completed,
+      remaining: items.length - completed,
+      total: items.length,
+    };
+  }
+);
+
+/**
+ * The 8 items needing a human — everything not auto-completed. Ordered so the
+ * hard stops (needs_review) surface above work already moving (in_progress)
+ * and unstarted items.
+ */
+const REVIEW_ORDER: Record<CloseStatus, number> = {
+  needs_review: 0,
+  in_progress: 1,
+  not_started: 2,
+  auto_completed: 3,
+};
+
+export const reviewItems: CloseChecklistItem[] = closeChecklist
+  .filter((i) => i.status !== "auto_completed")
+  .sort((a, b) => REVIEW_ORDER[a.status] - REVIEW_ORDER[b.status]);

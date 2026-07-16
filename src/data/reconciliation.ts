@@ -24,6 +24,21 @@ export const statementDate = "2026-06-30";
 export const bankBalance = 347218.44;
 export const glBalance = 341892.17;
 
+/**
+ * Current cash position and week-over-week movement for the operating
+ * account, used by the dashboard "Cash Position" stat card.
+ */
+export const cashPosition = {
+  current: bankBalance, // 347,218.44
+  priorWeek: 334512.1,
+  get wowDelta() {
+    return Number((this.current - this.priorWeek).toFixed(2));
+  },
+  get wowPct() {
+    return Number(((this.wowDelta / this.priorWeek) * 100).toFixed(1));
+  },
+};
+
 /* ------------------------------------------------------------------ *
  * Reconciling items
  * ------------------------------------------------------------------ */

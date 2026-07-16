@@ -171,3 +171,70 @@ export const forecastAccuracy = {
   lowestBalanceWeek:
     forecastWeeks.find((w) => w.isCashDip)?.weekLabel ?? "Apr 13–19",
 };
+
+/* ------------------------------------------------------------------ *
+ * 8-week cash-flow series (4 settled + 4 projected)
+ * Contiguous: the trailing weeks (Mar 9 – Apr 5) run straight into the
+ * forward weeks (Apr 6 – May 3). Used by the dashboard cash-flow chart.
+ *
+ * `net` is the week's net cash movement (inflows − outflows) — it crosses
+ * zero, so the audit-week dip reads clearly against a zero baseline. For
+ * projected weeks we also carry a widening confidence band derived from the
+ * end-of-week balance band in `forecastWeeks`.
+ * ------------------------------------------------------------------ */
+
+export interface WeeklyCashPoint {
+  weekLabel: string;
+  weekStart: string;
+  segment: "historical" | "projected";
+  net: number; // inflows − outflows for the week
+  balance: number; // end-of-week cash balance
+  bandLow: number | null; // projected-only lower bound on net
+  bandHigh: number | null; // projected-only upper bound on net
+  isCashDip?: boolean;
+}
+
+// Reconstruct settled end-of-week balances backward from the anchor opening
+// balance (which is the closing balance of the last historical week).
+const historicalEndBalances: number[] = [];
+{
+  let bal = openingBalance;
+  for (let i = forecastVsActual.length - 1; i >= 0; i--) {
+    historicalEndBalances[i] = bal;
+    bal -= forecastVsActual[i].actual_net;
+  }
+}
+
+export const weeklyCashFlow: WeeklyCashPoint[] = [
+  ...forecastVsActual.map((w, i) => ({
+    weekLabel: w.weekLabel,
+    weekStart: w.weekStart,
+    segment: "historical" as const,
+    net: w.actual_net,
+    balance: historicalEndBalances[i],
+    bandLow: null,
+    bandHigh: null,
+  })),
+  ...forecastWeeks.map((w) => {
+    const net = w.projected_inflows - w.projected_outflows;
+    // Half-width of the end-of-week balance band widens with the horizon;
+    // reuse it as the uncertainty around the week's net movement.
+    const half = (w.confidence_band_high - w.confidence_band_low) / 2;
+    return {
+      weekLabel: w.weekLabel,
+      weekStart: w.weekStart,
+      segment: "projected" as const,
+      net,
+      balance: w.net_position,
+      bandLow: net - half,
+      bandHigh: net + half,
+      isCashDip: w.isCashDip,
+    };
+  }),
+];
+
+/** Net cash movement across the 4 projected weeks (audit-heavy window). */
+export const projectedFourWeekNet = forecastWeeks.reduce(
+  (s, w) => s + (w.projected_inflows - w.projected_outflows),
+  0
+);
