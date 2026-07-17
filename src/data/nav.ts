@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
   },
   {
     label: "Close Workbook",
-    href: "/close-workbook",
+    href: "/close",
     icon: BookCheck,
     description: "Month-end close checklist & status",
   },

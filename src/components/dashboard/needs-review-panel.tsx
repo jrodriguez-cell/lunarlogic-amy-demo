@@ -25,7 +25,7 @@ export function NeedsReviewPanel() {
         return (
           <li key={item.id}>
             <Link
-              href={`/close-workbook?item=${item.id}`}
+              href={`/close?item=${item.id}`}
               className="group flex items-start gap-3 px-1 py-3 transition-colors hover:bg-slate-800/40"
             >
               <div className="min-w-0 flex-1">

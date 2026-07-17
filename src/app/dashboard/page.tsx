@@ -60,7 +60,7 @@ export default function DashboardPage() {
           subtitle={`${reviewCount} close items require a human decision`}
           action={
             <Link
-              href="/close-workbook"
+              href="/close"
               className="inline-flex items-center gap-1 text-xs font-semibold text-blue-400 hover:text-blue-300"
             >
               Open workbook

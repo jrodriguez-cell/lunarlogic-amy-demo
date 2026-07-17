@@ -452,3 +452,86 @@ const REVIEW_ORDER: Record<CloseStatus, number> = {
 export const reviewItems: CloseChecklistItem[] = closeChecklist
   .filter((i) => i.status !== "auto_completed")
   .sort((a, b) => REVIEW_ORDER[a.status] - REVIEW_ORDER[b.status]);
+
+/* ------------------------------------------------------------------ *
+ * Tie-out amounts (GL vs. supporting) per item
+ * ------------------------------------------------------------------ *
+ * Not every close task is a balance tie-out, so only items with a
+ * meaningful GL/supporting comparison appear here. A variance at or above
+ * the materiality threshold is flagged in the UI. The material variances
+ * are exactly the open review items — the bank-rec gross gap (which
+ * reconciles to $0 in the detail panel), the WIP true-up, the late April
+ * accrual, and the unconfirmed intercompany allocation.
+ */
+
+export const materialityThreshold = 1000;
+
+export interface TieOut {
+  glAmount: number;
+  supportingAmount: number | null; // null = supporting document still pending
+}
+
+export const closeTieOuts: Record<string, TieOut> = {
+  "CLS-01": { glAmount: 341892.17, supportingAmount: 347218.44 },
+  "CLS-02": { glAmount: 88500, supportingAmount: 88500 },
+  "CLS-03": { glAmount: 250000, supportingAmount: 250000 },
+  "CLS-04": { glAmount: 4120, supportingAmount: 4120 },
+  "CLS-05": { glAmount: 72000, supportingAmount: 72000 },
+  "CLS-06": { glAmount: 36000, supportingAmount: 36000 },
+  "CLS-07": { glAmount: 35000, supportingAmount: 35000 },
+  "CLS-08": { glAmount: 45000, supportingAmount: 45000 },
+  "CLS-09": { glAmount: 26000, supportingAmount: 28500 },
+  "CLS-10": { glAmount: 0, supportingAmount: 7800 },
+  "CLS-11": { glAmount: 5400, supportingAmount: 5400 },
+  "CLS-12": { glAmount: 6000, supportingAmount: 6000 },
+  "CLS-13": { glAmount: 18000, supportingAmount: 18000 },
+  "CLS-15": { glAmount: 12000, supportingAmount: 12000 },
+  "CLS-16": { glAmount: 0, supportingAmount: 3450 },
+  "CLS-17": { glAmount: 10600, supportingAmount: 10600 },
+  "CLS-18": { glAmount: 12000, supportingAmount: 15450 },
+  "CLS-19": { glAmount: 88500, supportingAmount: 88500 },
+  "CLS-20": { glAmount: 7880, supportingAmount: 7880 },
+  "CLS-22": { glAmount: 1200, supportingAmount: 1200 },
+  "CLS-23": { glAmount: 400, supportingAmount: 400 },
+  "CLS-24": { glAmount: 22000, supportingAmount: 22000 },
+  "CLS-25": { glAmount: 3500, supportingAmount: 3500 },
+  "CLS-26": { glAmount: 6800, supportingAmount: 6800 },
+  "CLS-28": { glAmount: 10600, supportingAmount: 10600 },
+  "CLS-31": { glAmount: 1372160, supportingAmount: null },
+};
+
+export interface TieOutResult extends TieOut {
+  variance: number | null; // null when supporting is pending
+  isMaterial: boolean;
+}
+
+export function getTieOut(id: string): TieOutResult | null {
+  const t = closeTieOuts[id];
+  if (!t) return null;
+  const variance =
+    t.supportingAmount === null
+      ? null
+      : Number((t.glAmount - t.supportingAmount).toFixed(2));
+  return {
+    ...t,
+    variance,
+    isMaterial: variance !== null && Math.abs(variance) >= materialityThreshold,
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * Close run metadata (status bar + close package)
+ * ------------------------------------------------------------------ */
+
+export const closeMeta = {
+  periodLabel: "June 2026 Month-End Close",
+  dayOfClose: 3,
+  targetDays: 3,
+  /** On track: the 8 human items are in flight and on pace to close today. */
+  onTrack: true,
+  timeSavedHours: 34,
+  preparer: "LunarLogic Automation · Priya Nair",
+  reviewer: "Marcus Webb (Controller)",
+  approver: "Amy Chen (CFO)",
+  dateCompleted: "2026-07-03",
+};

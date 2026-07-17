@@ -138,6 +138,30 @@ export const intercompanyItems: IntercompanyItem[] = [
   },
 ];
 
+/**
+ * Pre-built elimination journal entry for the intercompany balances, shown as
+ * a preview in the Close Workbook. Debits and credits balance; the shared-cost
+ * line ($3,450) is provisional pending the allocation review (IC-ALLOC-0630).
+ */
+export interface JournalLine {
+  account: string;
+  debit: number;
+  credit: number;
+  provisional?: boolean;
+}
+
+export const intercompanyElimination: JournalLine[] = [
+  { account: "4900 · Mgmt Fee Income — Holdings", debit: 12000, credit: 0 },
+  { account: "8000 · Mgmt Fee Expense — Digital", debit: 0, credit: 12000 },
+  { account: "8100 · Shared Services Recovery — Holdings", debit: 3450, credit: 0, provisional: true },
+  { account: "6100 · Allocated Shared Services — Digital", debit: 0, credit: 3450, provisional: true },
+];
+
+export const intercompanyEliminationTotals = {
+  debit: intercompanyElimination.reduce((s, l) => s + l.debit, 0),
+  credit: intercompanyElimination.reduce((s, l) => s + l.credit, 0),
+};
+
 /* ------------------------------------------------------------------ *
  * Reconciliation line items (31 total)
  * ------------------------------------------------------------------ */
