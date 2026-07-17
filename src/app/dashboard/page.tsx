@@ -88,8 +88,8 @@ export default function DashboardPage() {
                 <span className="font-semibold">
                   {covenantHealth.breachValue.toFixed(1)}x
                 </span>{" "}
-                in August — below the {covenantHealth.threshold.toFixed(1)}x floor.
-                Crossing shown below.
+                in {covenantHealth.breachMonth} — below the{" "}
+                {covenantHealth.threshold.toFixed(1)}x floor. Crossing shown below.
               </p>
             </div>
           )}

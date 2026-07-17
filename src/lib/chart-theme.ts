@@ -15,6 +15,17 @@ export const chartColors = {
   surface: "#0F172A", // page background
 } as const;
 
+/**
+ * Categorical colors for the three covenant ratios. CVD-validated triad
+ * (sky / violet / orange) — distinct from the reserved green/amber/red
+ * status colors. Always paired with a legend + direct end-labels.
+ */
+export const covenantColors: Record<string, string> = {
+  current_ratio: "#38BDF8", // sky-400
+  debt_to_equity: "#A78BFA", // violet-400
+  interest_coverage: "#FB923C", // orange-400
+};
+
 /** Recharts tooltip container styling (dark, on-brand). */
 export const tooltipStyle = {
   backgroundColor: "#1E293B",

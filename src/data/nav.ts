@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
   },
   {
     label: "Covenant Monitor",
-    href: "/covenant-monitor",
+    href: "/covenants",
     icon: ShieldCheck,
     description: "Debt covenant headroom tracking",
   },

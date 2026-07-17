@@ -128,7 +128,7 @@ export function StatCards() {
           Floor {covenantHealth.operator} {covenantHealth.threshold.toFixed(1)}
           {covenantHealth.unit}
           {covenantHealth.breachValue != null
-            ? ` · ${covenantHealth.breachValue.toFixed(1)}${covenantHealth.unit} projected Aug`
+            ? ` · ${covenantHealth.breachValue.toFixed(1)}${covenantHealth.unit} projected ${covenantHealth.breachMonthShort}`
             : ""}
         </p>
       </StatCard>
