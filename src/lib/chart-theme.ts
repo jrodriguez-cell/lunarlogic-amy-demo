@@ -26,12 +26,13 @@ export const covenantColors: Record<string, string> = {
   interest_coverage: "#FB923C", // orange-400
 };
 
-/** Recharts tooltip container styling (dark, on-brand). */
+/** Recharts tooltip container styling (dark, slate-300 text, blue-400 accent). */
 export const tooltipStyle = {
   backgroundColor: "#1E293B",
   border: "1px solid #334155",
+  borderTop: "2px solid #60A5FA", // blue-400 accent edge
   borderRadius: "0.5rem",
-  color: "#CBD5E1",
+  color: "#CBD5E1", // slate-300
   fontSize: "0.75rem",
   fontFamily: "var(--font-nunito), sans-serif",
   boxShadow: "0 8px 24px rgba(0,0,0,0.4)",

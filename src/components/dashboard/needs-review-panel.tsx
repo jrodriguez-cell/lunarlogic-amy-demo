@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   reviewItems,
   closeCategoryLabels,
@@ -18,6 +19,15 @@ const statusBadge: Record<
 };
 
 export function NeedsReviewPanel() {
+  if (reviewItems.length === 0) {
+    return (
+      <EmptyState
+        title="No items need review — you're all clear"
+        description="Every close task has auto-completed. Nothing is waiting on you."
+      />
+    );
+  }
+
   return (
     <ul className="divide-y divide-slate-700/60">
       {reviewItems.map((item) => {

@@ -7,6 +7,8 @@ import { CloseStatusBar, type FilterKey } from "@/components/close/close-status-
 import { CategorySection } from "@/components/close/category-section";
 import { DetailPanel } from "@/components/close/detail-panel";
 import { ClosePackage } from "@/components/close/close-package";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Card } from "@/components/ui/card";
 import {
   closeChecklist,
   closeCategories,
@@ -96,9 +98,20 @@ export function CloseView() {
             />
           ))}
         {itemsByCategory.size === 0 && (
-          <p className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-10 text-center text-sm text-slate-500">
-            No items match this filter.
-          </p>
+          <Card>
+            <EmptyState
+              title={
+                filter === "needs_review"
+                  ? "No items need review — you're all clear"
+                  : "Nothing to show here"
+              }
+              description={
+                filter === "needs_review"
+                  ? "Every close task has auto-completed."
+                  : "No items match this filter."
+              }
+            />
+          </Card>
         )}
       </div>
 

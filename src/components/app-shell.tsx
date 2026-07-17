@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, CalendarDays } from "lucide-react";
 
 import { LunarLogicWordmark } from "@/components/logo";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DemoBanner } from "@/components/demo-banner";
+import { SiteFooter } from "@/components/site-footer";
 import { CurrentDate } from "@/components/current-date";
+import { cn } from "@/lib/utils";
 import { demoClient } from "@/data/client";
+
+const BANNER_KEY = "ll-demo-banner-dismissed";
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -30,14 +34,30 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Default visible so SSR and first client render match; reconcile after mount.
+  const [bannerVisible, setBannerVisible] = useState(true);
+
+  useEffect(() => {
+    if (localStorage.getItem(BANNER_KEY) === "1") setBannerVisible(false);
+  }, []);
+
+  const dismissBanner = () => {
+    localStorage.setItem(BANNER_KEY, "1");
+    setBannerVisible(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0F172A]">
-      <DemoBanner />
+      {bannerVisible && <DemoBanner onDismiss={dismissBanner} />}
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="fixed inset-y-0 top-[33px] z-30 hidden w-64 border-r border-slate-700 bg-slate-900/60 backdrop-blur-sm lg:block">
+        <aside
+          className={cn(
+            "fixed inset-y-0 z-30 hidden w-64 border-r border-slate-700 bg-slate-900/60 backdrop-blur-sm lg:block",
+            bannerVisible ? "top-[33px]" : "top-0"
+          )}
+        >
           <SidebarContent />
         </aside>
 
@@ -92,6 +112,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
 
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+
+          <SiteFooter />
         </div>
       </div>
     </div>

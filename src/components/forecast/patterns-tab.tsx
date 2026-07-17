@@ -6,6 +6,7 @@ import { TriangleAlert, Pencil, CircleCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OverrideModal, type Override } from "@/components/forecast/override-modal";
+import { EmptyState } from "@/components/ui/empty-state";
 import { patternGroups, patternAnomalies, type SpendingPattern } from "@/data/patterns";
 import { transactionCategoryLabels } from "@/data/transactions";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -51,18 +52,27 @@ export function PatternsTab() {
         <h3 className="mb-3 font-heading text-base font-semibold text-slate-200">
           Flagged Anomalies
         </h3>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {patternAnomalies.map((a) => (
-            <Card key={a.id} className="border-amber-400/20 bg-amber-400/[0.04] p-4">
-              <div className="flex items-center gap-2">
-                <TriangleAlert className="h-4 w-4 shrink-0 text-amber-400" />
-                <span className="text-sm font-semibold text-slate-100">{a.vendor}</span>
-              </div>
-              <p className="mt-1 text-xs font-semibold text-amber-300">{a.headline}</p>
-              <p className="mt-1.5 text-xs leading-snug text-slate-400">{a.detail}</p>
-            </Card>
-          ))}
-        </div>
+        {patternAnomalies.length === 0 ? (
+          <Card>
+            <EmptyState
+              title="No anomalies detected — spending looks normal"
+              description="Every recurring pattern matched its expected cadence and amount."
+            />
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {patternAnomalies.map((a) => (
+              <Card key={a.id} className="border-amber-400/20 bg-amber-400/[0.04] p-4">
+                <div className="flex items-center gap-2">
+                  <TriangleAlert className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span className="text-sm font-semibold text-slate-100">{a.vendor}</span>
+                </div>
+                <p className="mt-1 text-xs font-semibold text-amber-300">{a.headline}</p>
+                <p className="mt-1.5 text-xs leading-snug text-slate-400">{a.detail}</p>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Pattern table */}
