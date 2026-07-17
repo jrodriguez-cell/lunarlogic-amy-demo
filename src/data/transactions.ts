@@ -60,6 +60,20 @@ export interface Transaction {
   anomaly?: AnomalyType;
 }
 
+export const transactionCategoryLabels: Record<TransactionCategory, string> = {
+  project_revenue: "Project Revenue",
+  retainer_revenue: "Retainer Revenue",
+  contractor_payroll: "Contractor Payroll",
+  software_saas: "Software & SaaS",
+  office_rent: "Office & Rent",
+  insurance: "Insurance",
+  taxes: "Taxes",
+  professional_services: "Professional Services",
+  hosting_domains: "Hosting & Domains",
+  intercompany_fee: "Intercompany",
+  debt_service: "Debt Service",
+};
+
 type RawTransaction = Omit<Transaction, "id">;
 
 /* ------------------------------------------------------------------ *

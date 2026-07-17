@@ -33,11 +33,17 @@ export interface ForecastWeek {
 export interface ForecastActualWeek {
   weekLabel: string;
   weekStart: string;
+  forecast_inflows: number;
+  actual_inflows: number;
+  forecast_outflows: number;
+  actual_outflows: number;
   forecast_net: number; // predicted net cash movement for the week
   actual_net: number; // settled net cash movement
-  variance: number; // actual − forecast
-  variance_pct: number; // |variance| / |forecast|, as a percentage
+  variance: number; // actual − forecast (net)
+  variance_pct: number; // |variance| / |forecast net|, as a percentage
   accuracy_pct: number; // 100 − variance_pct
+  topVarianceLabel: string; // line item that drove the biggest miss
+  topVarianceAmount: number; // signed contribution of that item
 }
 
 /** Cash on hand in the operating account at the snapshot anchor. */
@@ -117,38 +123,62 @@ export const forecastVsActual: ForecastActualWeek[] = [
   {
     weekLabel: "Mar 9–15",
     weekStart: "2026-03-09",
+    forecast_inflows: 78000,
+    actual_inflows: 80500,
+    forecast_outflows: 37000,
+    actual_outflows: 37300,
     forecast_net: 41000,
-    actual_net: 43200, // Meridian milestone landed on schedule
+    actual_net: 43200,
     variance: 2200,
     variance_pct: 5.4,
     accuracy_pct: 94.6,
+    topVarianceLabel: "Meridian milestone cleared 2 days early",
+    topVarianceAmount: 2200,
   },
   {
     weekLabel: "Mar 16–22",
     weekStart: "2026-03-16",
+    forecast_inflows: 70000,
+    actual_inflows: 69200,
+    forecast_outflows: 36000,
+    actual_outflows: 36750,
     forecast_net: 34000,
-    actual_net: 32450, // Northwind final milestone, minor timing slip
+    actual_net: 32450,
     variance: -1550,
     variance_pct: 4.6,
     accuracy_pct: 95.4,
+    topVarianceLabel: "Northwind remittance slipped to the next week",
+    topVarianceAmount: -1550,
   },
   {
     weekLabel: "Mar 23–29",
     weekStart: "2026-03-23",
+    forecast_inflows: 30000,
+    actual_inflows: 29186,
+    forecast_outflows: 36000,
+    actual_outflows: 36220,
     forecast_net: -6000,
-    actual_net: -6820, // E&O timing + Brightpath milestone offset
-    variance: -820,
-    variance_pct: 13.7,
-    accuracy_pct: 86.3,
+    actual_net: -7034,
+    variance: -1034,
+    variance_pct: 17.2,
+    accuracy_pct: 82.8,
+    topVarianceLabel: "E&O premium posted higher than modeled",
+    topVarianceAmount: -1034,
   },
   {
     weekLabel: "Mar 30–Apr 5",
     weekStart: "2026-03-30",
+    forecast_inflows: 26000,
+    actual_inflows: 26600,
+    forecast_outflows: 44500,
+    actual_outflows: 44500,
     forecast_net: -18500,
-    actual_net: -17900, // month-end payroll + mgmt fee
+    actual_net: -17900,
     variance: 600,
     variance_pct: 3.2,
     accuracy_pct: 96.8,
+    topVarianceLabel: "Atlas retainer received early",
+    topVarianceAmount: 600,
   },
 ];
 
@@ -238,3 +268,166 @@ export const projectedFourWeekNet = forecastWeeks.reduce(
   (s, w) => s + (w.projected_inflows - w.projected_outflows),
   0
 );
+
+/* ------------------------------------------------------------------ *
+ * Daily 4-week projection (28 days, Apr 6 – May 3)
+ * ------------------------------------------------------------------ *
+ * Expanded from the weekly forecast so it stays consistent with it: each
+ * week's daily inflows/outflows sum to that week's projected totals, so the
+ * running balance hits the same end-of-week `net_position` values. Big dated
+ * events (payroll, the $22K audit, Q1 tax, milestones) sit on their real
+ * days; the remainder is spread across the week's business days.
+ */
+
+/** Minimum operating cash balance the treasury policy requires. */
+export const minBalanceThreshold = 50000;
+
+export interface DailyCashPoint {
+  date: string; // ISO
+  label: string; // "Apr 6"
+  weekIndex: number; // 0–3
+  inflow: number;
+  outflow: number; // stored positive
+  net: number; // inflow − outflow
+  balance: number; // end-of-day running balance
+  bandLow: number;
+  bandHigh: number;
+  events: string[]; // notable dated items on this day
+}
+
+interface DailyAnchor {
+  offset: number; // 0 = Monday of the week
+  dir: "in" | "out";
+  amount: number;
+  label: string;
+}
+
+interface WeekPlan {
+  inflow: number;
+  outflow: number;
+  anchors: DailyAnchor[];
+}
+
+const WEEK_PLANS: WeekPlan[] = [
+  {
+    inflow: 24000,
+    outflow: 9000,
+    anchors: [
+      { offset: 1, dir: "in", amount: 15000, label: "Vertex SaaS retainer" },
+      { offset: 1, dir: "out", amount: 640, label: "Slack" },
+      { offset: 4, dir: "out", amount: 2400, label: "GL insurance premium" },
+    ],
+  },
+  {
+    inflow: 48000,
+    outflow: 84000,
+    anchors: [
+      { offset: 0, dir: "in", amount: 36000, label: "Sterling milestone" },
+      { offset: 2, dir: "in", amount: 12000, label: "Atlas retainer" },
+      { offset: 2, dir: "out", amount: 44000, label: "Contractor payroll" },
+      { offset: 2, dir: "out", amount: 22000, label: "Annual audit fee" },
+      { offset: 2, dir: "out", amount: 18000, label: "Q1 estimated tax" },
+    ],
+  },
+  {
+    inflow: 53000,
+    outflow: 12000,
+    anchors: [
+      { offset: 1, dir: "in", amount: 45000, label: "Peak Outdoor milestone" },
+      { offset: 2, dir: "in", amount: 8000, label: "Lumen retainer" },
+    ],
+  },
+  {
+    inflow: 19000,
+    outflow: 67200,
+    anchors: [
+      { offset: 1, dir: "in", amount: 19000, label: "Quill milestone" },
+      { offset: 1, dir: "out", amount: 44250, label: "Contractor payroll" },
+      { offset: 3, dir: "out", amount: 12000, label: "Intercompany mgmt fee" },
+      { offset: 4, dir: "out", amount: 3200, label: "Office rent" },
+    ],
+  },
+];
+
+function addDaysISO(iso: string, n: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function shortLabel(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+export const dailyForecast: DailyCashPoint[] = (() => {
+  const points: DailyCashPoint[] = [];
+  let balance = openingBalance;
+
+  WEEK_PLANS.forEach((plan, w) => {
+    const anchorIn = plan.anchors
+      .filter((a) => a.dir === "in")
+      .reduce((s, a) => s + a.amount, 0);
+    const anchorOut = plan.anchors
+      .filter((a) => a.dir === "out")
+      .reduce((s, a) => s + a.amount, 0);
+    // Spread the remaining operating flow across the 5 business days.
+    const residualInPerDay = Math.round((plan.inflow - anchorIn) / 5);
+    const residualOutPerDay = Math.round((plan.outflow - anchorOut) / 5);
+
+    for (let d = 0; d < 7; d++) {
+      const dayIndex = w * 7 + d;
+      const iso = addDaysISO(anchorDate, dayIndex);
+      const isBusinessDay = d < 5;
+
+      const dayAnchors = plan.anchors.filter((a) => a.offset === d);
+      let inflow = dayAnchors
+        .filter((a) => a.dir === "in")
+        .reduce((s, a) => s + a.amount, 0);
+      let outflow = dayAnchors
+        .filter((a) => a.dir === "out")
+        .reduce((s, a) => s + a.amount, 0);
+      if (isBusinessDay) {
+        inflow += Math.max(residualInPerDay, 0);
+        outflow += Math.max(residualOutPerDay, 0);
+      }
+
+      // Absorb rounding drift on the last business day so weekly sums are exact.
+      if (d === 4) {
+        const wkInSoFar =
+          points
+            .slice(w * 7)
+            .reduce((s, p) => s + p.inflow, 0) + inflow;
+        const wkOutSoFar =
+          points
+            .slice(w * 7)
+            .reduce((s, p) => s + p.outflow, 0) + outflow;
+        inflow += plan.inflow - wkInSoFar;
+        outflow += plan.outflow - wkOutSoFar;
+      }
+
+      balance += inflow - outflow;
+      const half = Math.round(2000 + dayIndex * ((28500 - 2000) / 27));
+
+      points.push({
+        date: iso,
+        label: shortLabel(iso),
+        weekIndex: w,
+        inflow,
+        outflow,
+        net: inflow - outflow,
+        balance,
+        bandLow: balance - half,
+        bandHigh: balance + half,
+        events: dayAnchors.map((a) =>
+          a.dir === "in" ? `+ ${a.label}` : `− ${a.label}`
+        ),
+      });
+    }
+  });
+
+  return points;
+})();

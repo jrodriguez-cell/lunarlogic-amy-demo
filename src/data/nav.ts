@@ -22,9 +22,9 @@ export const navItems: NavItem[] = [
   },
   {
     label: "Cash Flow Forecast",
-    href: "/cash-flow-forecast",
+    href: "/forecast",
     icon: TrendingUp,
-    description: "13-week direct cash forecast",
+    description: "Rolling 4-week direct cash forecast",
   },
   {
     label: "Close Workbook",
