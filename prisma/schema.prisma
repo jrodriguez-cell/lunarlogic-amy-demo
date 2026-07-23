@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum QuickBooksEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum QuickBooksConnectionStatus {
+  DISCONNECTED
+  CONNECTED
+  RECONNECT_REQUIRED
+}
+
+model Organization {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  name          String
+  legalEntities LegalEntity[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model LegalEntity {
+  id                   String                @id @default(cuid())
+  organizationId       String
+  key                  String
+  name                 String
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quickBooksConnection QuickBooksConnection?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model QuickBooksConnection {
+  id                     String                     @id @default(cuid())
+  legalEntityId          String                     @unique
+  environment            QuickBooksEnvironment      @default(SANDBOX)
+  status                 QuickBooksConnectionStatus @default(DISCONNECTED)
+  realmIdCiphertext      String?                    @db.Text
+  realmIdHash            String?
+  accessTokenCiphertext  String?                    @db.Text
+  refreshTokenCiphertext String?                    @db.Text
+  scopes                 String[]                   @default([])
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  hardExpiresAt          DateTime?
+  companyName            String?
+  connectedAt            DateTime?
+  lastSyncedAt           DateTime?
+  legalEntity            LegalEntity                @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  @@unique([environment, realmIdHash])
+  @@index([status])
+}
