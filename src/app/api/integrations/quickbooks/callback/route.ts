@@ -24,7 +24,7 @@ function dashboardRedirect(
   request: NextRequest,
   result: string,
 ): NextResponse {
-  const destination = new URL("/dashboard", request.url);
+  const destination = new URL("/integrations", request.url);
   destination.searchParams.set("quickbooks", result);
 
   const response = NextResponse.redirect(destination);

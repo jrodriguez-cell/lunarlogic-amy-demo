@@ -44,6 +44,7 @@ export interface QuickBooksConnectionSummary {
   status: "disconnected" | "connected" | "reconnect_required";
   companyName: string | null;
   connectedAt: string | null;
+  lastSyncedAt: string | null;
   accessTokenExpiresAt: string | null;
   refreshTokenExpiresAt: string | null;
 }
@@ -377,6 +378,7 @@ export async function getQuickBooksConnectionSummary(
           : "disconnected",
     companyName: connection?.companyName ?? null,
     connectedAt: connection?.connectedAt?.toISOString() ?? null,
+    lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
     accessTokenExpiresAt:
       connection?.accessTokenExpiresAt?.toISOString() ?? null,
     refreshTokenExpiresAt:

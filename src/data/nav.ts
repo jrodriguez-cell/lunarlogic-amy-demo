@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   BookCheck,
+  Cable,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -37,5 +38,11 @@ export const navItems: NavItem[] = [
     href: "/covenants",
     icon: ShieldCheck,
     description: "Debt covenant headroom tracking",
+  },
+  {
+    label: "Integrations",
+    href: "/integrations",
+    icon: Cable,
+    description: "Connected accounting systems",
   },
 ];

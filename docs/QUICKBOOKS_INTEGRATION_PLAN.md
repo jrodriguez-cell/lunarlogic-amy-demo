@@ -172,35 +172,35 @@ separate client ID, client secret, HTTPS redirect URI, and production review.
 - [x] Store the returned QuickBooks company name
 - [x] Create a connection-status endpoint
 - [x] Create a retryable `CompanyInfo` endpoint
-- [ ] Add a small integration screen or panel
-- [ ] Show **Connect QuickBooks** when disconnected
-- [ ] Show the sandbox company name and **Connected** status after authorization
-- [ ] Show **Disconnect** when connected
-- [ ] Show **Reconnect required** when token refresh can no longer recover
+- [x] Add a small integration screen or panel
+- [x] Show **Connect QuickBooks** when disconnected
+- [x] Show the sandbox company name and **Connected** status after authorization
+- [x] Show **Disconnect** when connected
+- [x] Show **Reconnect required** when token refresh can no longer recover
 
 ## Phase 5 - Verification
 
 - [x] Connect a sandbox company successfully
-- [ ] Reject a callback with an invalid or missing OAuth state
-- [ ] Confirm tokens and `realmId` are encrypted in PostgreSQL
-- [ ] Confirm tokens never reach browser code or logs
-- [ ] Restart the Next.js application and confirm the connection still works
-- [ ] Force or simulate access-token expiry and confirm refresh works
-- [ ] Confirm the newest rotated refresh token is persisted
-- [ ] Disconnect and confirm further QuickBooks requests fail safely
-- [ ] Run lint, type checking, and production build checks
-- [ ] Document local setup and reconnection steps
+- [x] Reject a callback with an invalid or missing OAuth state
+- [x] Confirm tokens and `realmId` are encrypted in PostgreSQL
+- [x] Confirm tokens never reach browser code or logs
+- [x] Restart the Next.js application and confirm the connection still works
+- [x] Force or simulate access-token expiry and confirm refresh works
+- [x] Confirm the newest rotated refresh token is persisted
+- [x] Disconnect and confirm further QuickBooks requests fail safely
+- [x] Run lint, type checking, and production build checks
+- [x] Document local setup and reconnection steps
 
 ## Completion criteria
 
 This milestone is complete when:
 
-- [ ] One fixed local demo organization can connect one QuickBooks sandbox company
-- [ ] The application displays the real QuickBooks company name from `CompanyInfo`
-- [ ] The connection survives an application restart
-- [ ] Access-token refresh works without user interaction
-- [ ] Disconnect revokes the Intuit authorization
-- [ ] No QuickBooks token or client secret is exposed to the frontend or committed to Git
+- [x] One fixed local demo organization can connect one QuickBooks sandbox company
+- [x] The application displays the real QuickBooks company name from `CompanyInfo`
+- [x] The connection survives an application restart
+- [x] Access-token refresh works without user interaction
+- [x] Disconnect revokes the Intuit authorization
+- [x] No QuickBooks token or client secret is exposed to the frontend or committed to Git
 
 ## Next milestone - Real accounting data
 
@@ -235,3 +235,6 @@ Do not start this section until the connection milestone is complete.
 | 2026-07-23 | Phase 2 local preparation complete | Encryption key confirmed; safe Intuit environment contract, supported API minor version, official portal steps, and verified OAuth safeguards documented. Portal configuration and Development credentials await the client. |
 | 2026-07-23 | Phase 3 code complete | One-time database OAuth state, authorization callback, encrypted token persistence, serialized connection lifecycle, bounded token rotation, loopback-only sandbox routes, status, CompanyInfo, and revoking disconnect endpoints implemented. Neon schema application and live sandbox authorization await the developer credentials. |
 | 2026-07-23 | Live sandbox connected | OAuth completed successfully; the status endpoint reports a connected sandbox and real `CompanyInfo` name `Sandbox Company US 8040`. |
+| 2026-07-23 | Phase 4 complete | Added the Integrations navigation/page, live connected-company state, callback notices, CompanyInfo refresh, disconnect confirmation, and disconnected/reconnect states. Desktop and mobile DOM checks passed; live CompanyInfo refresh succeeded without browser console errors. |
+| 2026-07-23 | Phase 5 verification in progress | Invalid and missing OAuth states were rejected. Encrypted-at-rest storage was confirmed without exposing stored values. A naturally expired access token triggered successful access and refresh-token rotation, the newest tokens were persisted, and a subsequent live CompanyInfo request succeeded. Static client/log scans, targeted ESLint, and type checking passed. Restart, production build, and final disconnect checks remain. |
+| 2026-07-23 | Phase 5 complete | The developer's production build passed. A fresh `npm run start` process restored the persisted connection and completed a live CompanyInfo request. Disconnect revoked authorization, cleared local connection credentials, and subsequent QuickBooks requests failed safely. The sandbox is intentionally disconnected and must be reconnected before the next accounting-data milestone. |
