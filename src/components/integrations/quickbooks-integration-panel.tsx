@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Building2,
@@ -20,27 +19,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  useDisconnectQuickBooksConnection,
+  useQuickBooksConnectionStatus,
+  useRefreshQuickBooksCompanyInfo,
+} from "@/hooks/use-quickbooks-live";
 import { cn } from "@/lib/utils";
-
-type ConnectionStatus =
-  | "disconnected"
-  | "connected"
-  | "reconnect_required";
-
-interface ConnectionSummary {
-  legalEntityId: string;
-  legalEntityName: string;
-  environment: "sandbox" | "production";
-  status: ConnectionStatus;
-  companyName: string | null;
-  connectedAt: string | null;
-  lastSyncedAt: string | null;
-}
-
-interface StatusResponse {
-  connection?: ConnectionSummary;
-  error?: string;
-}
 
 const callbackMessages: Record<
   string,
@@ -91,80 +75,43 @@ function formatTimestamp(value: string | null): string {
   }).format(new Date(value));
 }
 
+function errorMessage(error: unknown): string | null {
+  return error instanceof Error ? error.message : null;
+}
+
 export function QuickBooksIntegrationPanel() {
   const searchParams = useSearchParams();
   const callbackResult = searchParams.get("quickbooks");
   const callbackMessage = callbackResult
     ? callbackMessages[callbackResult]
     : undefined;
+  const statusQuery = useQuickBooksConnectionStatus();
+  const companyInfoMutation = useRefreshQuickBooksCompanyInfo();
+  const disconnectMutation = useDisconnectQuickBooksConnection();
+  const connection = statusQuery.data;
+  const isConnected = connection?.status === "connected";
+  const needsReconnect = connection?.status === "reconnect_required";
+  const operation = companyInfoMutation.isPending
+    ? "refreshing"
+    : disconnectMutation.isPending
+      ? "disconnecting"
+      : null;
+  const error =
+    errorMessage(statusQuery.error) ??
+    errorMessage(companyInfoMutation.error) ??
+    errorMessage(disconnectMutation.error);
+  const notice = companyInfoMutation.isSuccess
+    ? "CompanyInfo refreshed from QuickBooks."
+    : disconnectMutation.isSuccess
+      ? "QuickBooks disconnected."
+      : null;
 
-  const [connection, setConnection] = useState<ConnectionSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [operation, setOperation] = useState<
-    "refreshing" | "disconnecting" | null
-  >(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  const loadStatus = useCallback(async () => {
-    setError(null);
-
-    try {
-      const response = await fetch("/api/integrations/quickbooks/status", {
-        cache: "no-store",
-      });
-      const payload = (await response.json()) as StatusResponse;
-
-      if (!response.ok || !payload.connection) {
-        throw new Error(payload.error || "Connection status is unavailable.");
-      }
-
-      setConnection(payload.connection);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Connection status is unavailable.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadStatus();
-  }, [loadStatus]);
-
-  async function refreshCompanyInfo() {
-    setOperation("refreshing");
-    setError(null);
-    setNotice(null);
-
-    try {
-      const response = await fetch(
-        "/api/integrations/quickbooks/company-info",
-        { method: "POST" },
-      );
-      const payload = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(payload.error || "CompanyInfo could not be refreshed.");
-      }
-
-      await loadStatus();
-      setNotice("CompanyInfo refreshed from QuickBooks.");
-    } catch (refreshError) {
-      setError(
-        refreshError instanceof Error
-          ? refreshError.message
-          : "CompanyInfo could not be refreshed.",
-      );
-    } finally {
-      setOperation(null);
-    }
+  function refreshCompanyInfo() {
+    disconnectMutation.reset();
+    companyInfoMutation.mutate();
   }
 
-  async function disconnect() {
+  function disconnect() {
     if (
       !window.confirm(
         "Disconnect QuickBooks? LunarLogic will revoke its current authorization.",
@@ -173,44 +120,15 @@ export function QuickBooksIntegrationPanel() {
       return;
     }
 
-    setOperation("disconnecting");
-    setError(null);
-    setNotice(null);
-
-    try {
-      const response = await fetch(
-        "/api/integrations/quickbooks/disconnect",
-        { method: "POST" },
-      );
-      const payload = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(
-          payload.error || "QuickBooks could not be disconnected.",
-        );
-      }
-
-      await loadStatus();
-      setNotice("QuickBooks disconnected.");
-    } catch (disconnectError) {
-      setError(
-        disconnectError instanceof Error
-          ? disconnectError.message
-          : "QuickBooks could not be disconnected.",
-      );
-    } finally {
-      setOperation(null);
-    }
+    companyInfoMutation.reset();
+    disconnectMutation.mutate();
   }
 
-  if (loading) {
+  if (statusQuery.isPending) {
     return (
       <div className="h-72 animate-pulse rounded-xl border border-slate-700 bg-slate-800/40" />
     );
   }
-
-  const isConnected = connection?.status === "connected";
-  const needsReconnect = connection?.status === "reconnect_required";
 
   return (
     <div className="space-y-4">
@@ -330,8 +248,8 @@ export function QuickBooksIntegrationPanel() {
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
                     LunarLogic encrypts connection credentials and refreshes
-                    access automatically. Dashboard values remain demo data until
-                    accounting synchronization is implemented.
+                    access automatically. Live accounting snapshots are loaded
+                    separately from the dashboard.
                   </p>
                 </div>
               </div>

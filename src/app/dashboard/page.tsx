@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { ChevronRight, TriangleAlert } from "lucide-react";
 
-import { PageHeader } from "@/components/page-header";
-import { StatCards } from "@/components/dashboard/stat-cards";
-import { SectionCard } from "@/components/dashboard/section-card";
 import { CashFlowChart } from "@/components/dashboard/cash-flow-chart";
 import { CloseCategoryChart } from "@/components/dashboard/close-category-chart";
 import { CovenantAlertChart } from "@/components/dashboard/covenant-alert-chart";
 import { NeedsReviewPanel } from "@/components/dashboard/needs-review-panel";
-import { chartColors } from "@/lib/chart-theme";
-
-import { forecastAccuracy } from "@/data/forecast";
+import { QuickBooksLiveOverviewPanel } from "@/components/dashboard/quickbooks-live-overview";
+import { SectionCard } from "@/components/dashboard/section-card";
+import { StatCards } from "@/components/dashboard/stat-cards";
+import { PageHeader } from "@/components/page-header";
 import { closeSummary } from "@/data/close-checklist";
 import { covenantHealth } from "@/data/covenants";
+import { forecastAccuracy } from "@/data/forecast";
+import { chartColors } from "@/lib/chart-theme";
 
 export default function DashboardPage() {
   const reviewCount = closeSummary.total - closeSummary.autoCompleted;
@@ -24,18 +24,41 @@ export default function DashboardPage() {
         subtitle="Working-capital, cash, and covenant health for Vanguard Digital LLC"
       />
 
-      {/* Top row — stat cards */}
+      <QuickBooksLiveOverviewPanel />
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-400/15 bg-amber-400/[0.07] px-4 py-3">
+        <div>
+          <p className="text-sm font-semibold text-amber-200">
+            Forecast, close, and covenant demonstration
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            The modules below still use mock data until their service
+            integrations and calculation engines are implemented.
+          </p>
+        </div>
+        <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+          Demo data
+        </span>
+      </div>
+
       <StatCards />
 
-      {/* Middle row — cash flow + close completion */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
           title="Cash Flow"
-          subtitle="8-week net movement — 4 actual, 4 projected"
+          subtitle="8-week net movement - 4 actual, 4 projected"
           legend={[
             { label: "Actual", color: chartColors.blue, variant: "solid" },
-            { label: "Projected", color: chartColors.blue, variant: "dashed" },
-            { label: "Confidence band", color: "#2b4a72", variant: "solid" },
+            {
+              label: "Projected",
+              color: chartColors.blue,
+              variant: "dashed",
+            },
+            {
+              label: "Confidence band",
+              color: "#2b4a72",
+              variant: "solid",
+            },
           ]}
         >
           <CashFlowChart />
@@ -45,15 +68,22 @@ export default function DashboardPage() {
           title="Close Completion by Category"
           subtitle={`${closeSummary.autoCompleted} of ${closeSummary.total} items auto-completed`}
           legend={[
-            { label: "Complete", color: chartColors.green, variant: "solid" },
-            { label: "Remaining", color: chartColors.slate600, variant: "solid" },
+            {
+              label: "Complete",
+              color: chartColors.green,
+              variant: "solid",
+            },
+            {
+              label: "Remaining",
+              color: chartColors.slate600,
+              variant: "solid",
+            },
           ]}
         >
           <CloseCategoryChart />
         </SectionCard>
       </div>
 
-      {/* Bottom row — needs review + covenant alert */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard
           title="Needs Your Review"
@@ -76,8 +106,16 @@ export default function DashboardPage() {
           subtitle="Interest coverage vs. the 2.0x facility floor"
           legend={[
             { label: "Actual", color: chartColors.blue, variant: "solid" },
-            { label: "Projected", color: chartColors.blue, variant: "dashed" },
-            { label: "Covenant floor", color: chartColors.red, variant: "dashed" },
+            {
+              label: "Projected",
+              color: chartColors.blue,
+              variant: "dashed",
+            },
+            {
+              label: "Covenant floor",
+              color: chartColors.red,
+              variant: "dashed",
+            },
           ]}
         >
           {covenantHealth.breachValue != null && (
@@ -88,8 +126,9 @@ export default function DashboardPage() {
                 <span className="font-semibold">
                   {covenantHealth.breachValue.toFixed(1)}x
                 </span>{" "}
-                in {covenantHealth.breachMonth} — below the{" "}
-                {covenantHealth.threshold.toFixed(1)}x floor. Crossing shown below.
+                in {covenantHealth.breachMonth} - below the{" "}
+                {covenantHealth.threshold.toFixed(1)}x floor. Crossing shown
+                below.
               </p>
             </div>
           )}
@@ -98,9 +137,9 @@ export default function DashboardPage() {
       </div>
 
       <p className="pb-2 text-center text-xs text-slate-600">
-        Cash forecast accuracy {forecastAccuracy.accuracy_pct}% over the trailing{" "}
-        {forecastAccuracy.trailingWeeks} weeks · demo data, no live QuickBooks
-        connection
+        Cash forecast accuracy {forecastAccuracy.accuracy_pct}% over the
+        trailing {forecastAccuracy.trailingWeeks} weeks - forecast metric
+        remains demo data
       </p>
     </div>
   );

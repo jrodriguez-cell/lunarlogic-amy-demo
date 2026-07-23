@@ -11,7 +11,56 @@ interface IntuitCompanyInfoResponse {
   };
 }
 
+interface IntuitQueryResponse<T> {
+  QueryResponse?: {
+    Account?: T[];
+    maxResults?: number;
+    startPosition?: number;
+  };
+}
+
+export interface QuickBooksAccountRecord {
+  Id?: unknown;
+  SyncToken?: unknown;
+  Name?: unknown;
+  FullyQualifiedName?: unknown;
+  Classification?: unknown;
+  AccountType?: unknown;
+  AccountSubType?: unknown;
+  CurrentBalance?: unknown;
+  Active?: unknown;
+  MetaData?: {
+    LastUpdatedTime?: unknown;
+  };
+}
+
+export interface QuickBooksReport {
+  Header?: {
+    Time?: unknown;
+    ReportName?: unknown;
+    ReportBasis?: unknown;
+    StartPeriod?: unknown;
+    EndPeriod?: unknown;
+    Currency?: unknown;
+    Option?: Array<{
+      Name?: unknown;
+      Value?: unknown;
+    }>;
+  };
+  Columns?: unknown;
+  Rows?: unknown;
+}
+
+export type QuickBooksReportName =
+  | "BalanceSheet"
+  | "ProfitAndLoss"
+  | "TrialBalance"
+  | "AgedReceivables"
+  | "AgedPayables";
+
 const INTUIT_REQUEST_TIMEOUT_MS = 15_000;
+const QUICKBOOKS_QUERY_PAGE_SIZE = 1000;
+const QUICKBOOKS_QUERY_MAX_PAGES = 20;
 
 export interface QuickBooksCompanyInfo {
   companyName: string;
@@ -30,6 +79,7 @@ export class QuickBooksApiError extends Error {
 async function sendQuickBooksRequest(
   legalEntityId: string,
   path: string,
+  searchParams: Record<string, string> = {},
   forceRefresh = false,
 ): Promise<Response> {
   const config = getQuickBooksConfig();
@@ -38,6 +88,11 @@ async function sendQuickBooksRequest(
     forceRefresh,
   );
   const url = new URL(`${config.apiBaseUrl}${path}`);
+
+  for (const [name, value] of Object.entries(searchParams)) {
+    url.searchParams.set(name, value);
+  }
+
   url.searchParams.set("minorversion", String(config.apiMinorVersion));
 
   return fetch(url, {
@@ -53,11 +108,21 @@ async function sendQuickBooksRequest(
 async function quickBooksGet<T>(
   legalEntityId: string,
   path: string,
+  searchParams: Record<string, string> = {},
 ): Promise<T> {
-  let response = await sendQuickBooksRequest(legalEntityId, path);
+  let response = await sendQuickBooksRequest(
+    legalEntityId,
+    path,
+    searchParams,
+  );
 
   if (response.status === 401) {
-    response = await sendQuickBooksRequest(legalEntityId, path, true);
+    response = await sendQuickBooksRequest(
+      legalEntityId,
+      path,
+      searchParams,
+      true,
+    );
   }
 
   if (!response.ok) {
@@ -90,4 +155,57 @@ export async function getQuickBooksCompanyInfo(
   }
 
   return { companyName: rawCompanyName.trim() };
+}
+
+export async function getQuickBooksAccounts(
+  legalEntityId: string,
+): Promise<QuickBooksAccountRecord[]> {
+  const realmId = await getQuickBooksRealmId(legalEntityId);
+  const encodedRealmId = encodeURIComponent(realmId);
+  const accounts: QuickBooksAccountRecord[] = [];
+
+  for (let page = 0; page < QUICKBOOKS_QUERY_MAX_PAGES; page += 1) {
+    const startPosition = page * QUICKBOOKS_QUERY_PAGE_SIZE + 1;
+    const query = [
+      "SELECT * FROM Account",
+      `STARTPOSITION ${startPosition}`,
+      `MAXRESULTS ${QUICKBOOKS_QUERY_PAGE_SIZE}`,
+    ].join(" ");
+    const payload = await quickBooksGet<
+      IntuitQueryResponse<QuickBooksAccountRecord>
+    >(
+      legalEntityId,
+      `/company/${encodedRealmId}/query`,
+      { query },
+    );
+    const pageAccounts = Array.isArray(payload.QueryResponse?.Account)
+      ? payload.QueryResponse.Account
+      : [];
+
+    accounts.push(...pageAccounts);
+
+    if (pageAccounts.length < QUICKBOOKS_QUERY_PAGE_SIZE) {
+      return accounts;
+    }
+  }
+
+  throw new QuickBooksApiError(
+    "QuickBooks returned more account pages than the safety limit allows.",
+    502,
+  );
+}
+
+export async function getQuickBooksReport(
+  legalEntityId: string,
+  reportName: QuickBooksReportName,
+  searchParams: Record<string, string> = {},
+): Promise<QuickBooksReport> {
+  const realmId = await getQuickBooksRealmId(legalEntityId);
+  const encodedRealmId = encodeURIComponent(realmId);
+
+  return quickBooksGet<QuickBooksReport>(
+    legalEntityId,
+    `/company/${encodedRealmId}/reports/${reportName}`,
+    searchParams,
+  );
 }

@@ -3,6 +3,7 @@ import { Nunito, Fraunces } from "next/font/google";
 
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${nunito.variable} ${fraunces.variable} dark`}>
       <body className="font-sans antialiased">
-        <AppShell>{children}</AppShell>
+        <QueryProvider>
+          <AppShell>{children}</AppShell>
+        </QueryProvider>
       </body>
     </html>
   );

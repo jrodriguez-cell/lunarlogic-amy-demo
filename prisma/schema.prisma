@@ -18,6 +18,20 @@ enum QuickBooksConnectionStatus {
   RECONNECT_REQUIRED
 }
 
+enum QuickBooksSyncStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum QuickBooksReportType {
+  BALANCE_SHEET
+  PROFIT_AND_LOSS
+  TRIAL_BALANCE
+  AGED_RECEIVABLES
+  AGED_PAYABLES
+}
+
 model Organization {
   id            String        @id @default(cuid())
   slug          String        @unique
@@ -35,6 +49,9 @@ model LegalEntity {
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   quickBooksConnection QuickBooksConnection?
   quickBooksOAuthStates QuickBooksOAuthState[]
+  quickBooksAccounts   QuickBooksAccount[]
+  quickBooksReports    QuickBooksReportSnapshot[]
+  quickBooksSyncRuns   QuickBooksSyncRun[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
 
@@ -79,4 +96,64 @@ model QuickBooksOAuthState {
 
   @@index([legalEntityId])
   @@index([expiresAt])
+}
+
+model QuickBooksAccount {
+  id                 String      @id @default(cuid())
+  legalEntityId      String
+  quickBooksId       String
+  syncToken          String?
+  name               String
+  fullyQualifiedName String?
+  classification     String?
+  accountType        String
+  accountSubType     String?
+  currentBalance     Decimal?    @db.Decimal(18, 2)
+  active             Boolean     @default(true)
+  sourceUpdatedAt    DateTime?
+  syncedAt           DateTime    @default(now())
+  legalEntity        LegalEntity @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([legalEntityId, quickBooksId])
+  @@index([legalEntityId, accountType])
+  @@index([legalEntityId, active])
+}
+
+model QuickBooksSyncRun {
+  id            String               @id @default(cuid())
+  legalEntityId String
+  status        QuickBooksSyncStatus @default(RUNNING)
+  source        String               @default("manual")
+  recordCounts  Json?                @db.JsonB
+  warnings      String[]             @default([])
+  errorSummary  String?
+  startedAt     DateTime             @default(now())
+  finishedAt    DateTime?
+  legalEntity   LegalEntity          @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
+  reports       QuickBooksReportSnapshot[]
+
+  @@index([legalEntityId, startedAt])
+  @@index([status])
+}
+
+model QuickBooksReportSnapshot {
+  id            String               @id @default(cuid())
+  legalEntityId String
+  syncRunId     String
+  reportType    QuickBooksReportType
+  reportName    String
+  basis         String?
+  currency      String?
+  startPeriod   String?
+  endPeriod     String?
+  reportTime    DateTime?
+  payload       Json                 @db.JsonB
+  fetchedAt     DateTime             @default(now())
+  legalEntity   LegalEntity          @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
+  syncRun       QuickBooksSyncRun    @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  @@index([legalEntityId, reportType, fetchedAt])
+  @@index([syncRunId])
 }
