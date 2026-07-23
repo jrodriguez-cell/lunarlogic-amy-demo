@@ -3,6 +3,7 @@ import { TriangleAlert, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionCard } from "@/components/dashboard/section-card";
 import { DailyCashChart } from "@/components/forecast/daily-cash-chart";
+import { ExportForecastButton } from "@/components/forecast/export-forecast-button";
 import { chartColors } from "@/lib/chart-theme";
 import { cn, formatCompactCurrency } from "@/lib/utils";
 import { forecastWeeks } from "@/data/forecast";
@@ -17,6 +18,7 @@ export function ForecastTab() {
       <SectionCard
         title="4-Week Daily Cash Projection"
         subtitle="Rolling daily forecast · net position, confidence band, and daily flows"
+        action={<ExportForecastButton />}
         legend={[
           { label: "Net position", color: chartColors.blue, variant: "solid" },
           { label: "Confidence band", color: "#2b4a72", variant: "solid" },
