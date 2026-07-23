@@ -16,10 +16,32 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://lunarlogic-amy-demo.vercel.app";
+const DESCRIPTION =
+  "Automated cash-flow forecasting, month-end close, and covenant monitoring — a live demo from LunarLogic.";
+
 export const metadata: Metadata = {
-  title: "LunarLogic — Vanguard Holdings Group",
-  description:
-    "LunarLogic demo environment for Vanguard Holdings Group — treasury, cash flow forecasting, month-end close, and covenant monitoring.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "LunarLogic — Finance Cockpit",
+    template: "%s · LunarLogic",
+  },
+  description: DESCRIPTION,
+  applicationName: "LunarLogic",
+  openGraph: {
+    title: "LunarLogic — Finance Cockpit",
+    description: DESCRIPTION,
+    siteName: "LunarLogic",
+    url: SITE_URL,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LunarLogic — Finance Cockpit",
+    description: DESCRIPTION,
+  },
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
