@@ -34,6 +34,7 @@ model LegalEntity {
   name                 String
   organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   quickBooksConnection QuickBooksConnection?
+  quickBooksOAuthStates QuickBooksOAuthState[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
 
@@ -57,10 +58,25 @@ model QuickBooksConnection {
   companyName            String?
   connectedAt            DateTime?
   lastSyncedAt           DateTime?
+  refreshLockId          String?
+  refreshLockedAt        DateTime?
   legalEntity            LegalEntity                @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
   createdAt              DateTime                   @default(now())
   updatedAt              DateTime                   @updatedAt
 
   @@unique([environment, realmIdHash])
   @@index([status])
+}
+
+model QuickBooksOAuthState {
+  id            String      @id @default(cuid())
+  stateHash     String      @unique
+  legalEntityId String
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  legalEntity   LegalEntity @relation(fields: [legalEntityId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@index([legalEntityId])
+  @@index([expiresAt])
 }
