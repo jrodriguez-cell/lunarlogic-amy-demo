@@ -5,9 +5,13 @@ import { X, CircleCheck, Clock, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { statusMeta } from "@/components/close/status-icon";
+import { SupportingDocs, AuditTrail } from "@/components/close/evidence";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   getTieOut,
+  getSupportingDocs,
+  getSourceRef,
+  getItemAuditTrail,
   closeCategoryLabels,
   type CloseChecklistItem,
 } from "@/data/close-checklist";
@@ -73,7 +77,7 @@ function ReconcilingRow({
   );
 }
 
-function BankRecDetail() {
+function BankRecDetail({ item }: { item: CloseChecklistItem }) {
   // Outstanding checks + deposits in transit are matched (timing only);
   // the unrecorded bank fee is unmatched until booked to the GL.
   const matchedItems = [...outstandingChecks, ...depositsInTransit];
@@ -135,6 +139,8 @@ function BankRecDetail() {
         Adjusted bank and adjusted book both tie to{" "}
         {formatCurrency(tieOut.adjustedBankBalance)} — fully reconciled.
       </p>
+
+      <SupportingDocs docs={getSupportingDocs(item)} sourceRef={getSourceRef(item)} />
 
       {/* Audit trail */}
       <div>
@@ -204,6 +210,9 @@ function GenericDetail({ item }: { item: CloseChecklistItem }) {
         <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</p>
         <p className="text-sm leading-relaxed text-slate-400">{item.notes}</p>
       </div>
+
+      <SupportingDocs docs={getSupportingDocs(item)} sourceRef={getSourceRef(item)} />
+      <AuditTrail events={getItemAuditTrail(item)} />
     </div>
   );
 }
@@ -254,7 +263,7 @@ export function DetailPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5">
-          {isBankRec ? <BankRecDetail /> : <GenericDetail item={item} />}
+          {isBankRec ? <BankRecDetail item={item} /> : <GenericDetail item={item} />}
         </div>
       </aside>
     </div>

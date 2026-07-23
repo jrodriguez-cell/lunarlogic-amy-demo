@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Clock3, CircleCheck } from "lucide-react";
+import Link from "next/link";
+import { FileText, Clock3, CircleCheck, Lock, Printer } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,12 +23,19 @@ export function ClosePackage() {
       <CardContent className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="font-heading text-lg font-semibold text-slate-100">Close Package</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-heading text-lg font-semibold text-slate-100">Close Package</h2>
+              {closeMeta.locked && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-green-400/20 bg-green-400/10 px-2 py-0.5 text-[11px] font-semibold text-green-400">
+                  <Lock className="h-3 w-3" /> Locked · {closeMeta.version}
+                </span>
+              )}
+            </div>
             <p className="mt-0.5 text-sm text-slate-500">
               Assemble the signed close binder — all {closeSummary.total} items with support and sign-off.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 rounded-lg border border-green-400/20 bg-green-400/10 px-3 py-2">
               <Clock3 className="h-4 w-4 text-green-400" />
               <span className="text-sm text-slate-200">
@@ -35,10 +43,16 @@ export function ClosePackage() {
                 <span className="font-semibold text-green-400">{closeMeta.timeSavedHours} hours</span>
               </span>
             </div>
-            <Button variant="gradient" onClick={() => setOpen((o) => !o)} className="gap-2">
+            <Button variant="outline" onClick={() => setOpen((o) => !o)} className="gap-2">
               <FileText className="h-4 w-4" />
-              {open ? "Hide Preview" : "Generate Close Package"}
+              {open ? "Hide Preview" : "Preview"}
             </Button>
+            <Link href="/close/package" target="_blank" rel="noopener noreferrer">
+              <Button variant="gradient" className="gap-2">
+                <Printer className="h-4 w-4" />
+                Export Close Package
+              </Button>
+            </Link>
           </div>
         </div>
 

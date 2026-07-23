@@ -54,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Desktop sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 z-30 hidden w-64 border-r border-slate-700 bg-slate-900/60 backdrop-blur-sm lg:block",
+            "fixed inset-y-0 z-30 hidden w-64 border-r border-slate-700 bg-slate-900/60 backdrop-blur-sm lg:block print:hidden",
             bannerVisible ? "top-[33px]" : "top-0"
           )}
         >
@@ -84,9 +84,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Main column */}
-        <div className="flex min-h-screen w-full flex-col lg:pl-64">
+        <div className="flex min-h-screen w-full flex-col lg:pl-64 print:!pl-0">
           {/* Top bar */}
-          <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-700 bg-[#0F172A]/80 px-4 backdrop-blur-md sm:px-6">
+          <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-slate-700 bg-[#0F172A]/80 px-4 backdrop-blur-md sm:px-6 print:hidden">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 print:!p-0">{children}</main>
 
           <SiteFooter />
         </div>

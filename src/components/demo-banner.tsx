@@ -11,7 +11,7 @@ import { demoClient } from "@/data/client";
  */
 export function DemoBanner({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div className="relative flex h-[33px] w-full items-center justify-center border-b border-blue-400/20 bg-blue-400/10 px-10 text-center text-xs font-medium tracking-wide text-blue-200">
+    <div className="relative flex h-[33px] w-full items-center justify-center border-b border-blue-400/20 bg-blue-400/10 px-10 text-center text-xs font-medium tracking-wide text-blue-200 print:hidden">
       <span className="truncate">
         {demoClient.environmentLabel} — {demoClient.name}
       </span>

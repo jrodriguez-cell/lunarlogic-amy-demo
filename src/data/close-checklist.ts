@@ -534,4 +534,130 @@ export const closeMeta = {
   reviewer: "Marcus Webb (Controller)",
   approver: "Amy Chen (CFO)",
   dateCompleted: "2026-07-03",
+  entity: "Vanguard Digital LLC",
+  // Period lock / tamper-evidence for the audit package
+  locked: true,
+  version: "v1",
+  lockedAt: "2026-07-03T17:20:00Z",
+  packageId: "CP-2026-06-VDL",
+  contentHash: "sha256:9f2a4c1e…e1b7",
 };
+
+/* ------------------------------------------------------------------ *
+ * Supporting documentation & per-item audit trail (audit package)
+ * ------------------------------------------------------------------ */
+
+export type DocSource = "QuickBooks" | "Plaid" | "Gusto" | "Schedule" | "Document";
+
+export interface SupportingDoc {
+  label: string;
+  source: DocSource;
+  ref?: string; // GL account / trace-to-source reference
+}
+
+export interface AuditEvent {
+  ts: string; // ISO
+  actor: string;
+  event: string;
+}
+
+/** GL account each category traces back to (trace-to-source). */
+const CATEGORY_GL: Record<CloseCategory, string> = {
+  bank_recs: "1000 · Operating Cash",
+  revenue_recognition: "4000 · Revenue",
+  expense_accruals: "6000 · Operating Expenses",
+  intercompany: "8000 · Intercompany",
+  payroll: "6000 · Contractor Payroll",
+  prepaids: "1300 · Prepaid Expenses",
+  fixed_assets: "1500 · Fixed Assets",
+  debt: "2700 · Term Loan",
+};
+
+const CATEGORY_DOCS: Record<CloseCategory, SupportingDoc[]> = {
+  bank_recs: [
+    { label: "Bank statement — First Meridian (June)", source: "Document" },
+    { label: "Plaid cleared-transaction feed", source: "Plaid" },
+    { label: "QBO cash-account register", source: "QuickBooks" },
+  ],
+  revenue_recognition: [
+    { label: "Milestone acceptance / SOW", source: "Document" },
+    { label: "Deferred revenue rollforward", source: "Schedule" },
+    { label: "QBO invoices & journal entries", source: "QuickBooks" },
+  ],
+  expense_accruals: [
+    { label: "Vendor invoices", source: "Document" },
+    { label: "Accrual schedule", source: "Schedule" },
+    { label: "QBO bills & journal entries", source: "QuickBooks" },
+  ],
+  intercompany: [
+    { label: "Management-fee agreement", source: "Document" },
+    { label: "Allocation basis worksheet", source: "Schedule" },
+    { label: "QBO entries — both company files", source: "QuickBooks" },
+  ],
+  payroll: [
+    { label: "Gusto payroll report", source: "Gusto" },
+    { label: "Payroll tax filings", source: "Document" },
+    { label: "QBO GL postings", source: "QuickBooks" },
+  ],
+  prepaids: [
+    { label: "Prepaid amortization schedule", source: "Schedule" },
+    { label: "Original vendor invoice", source: "Document" },
+    { label: "QBO prepaid account", source: "QuickBooks" },
+  ],
+  fixed_assets: [
+    { label: "Fixed-asset register", source: "Schedule" },
+    { label: "Depreciation schedule", source: "Schedule" },
+    { label: "QBO fixed-asset accounts", source: "QuickBooks" },
+  ],
+  debt: [
+    { label: "Loan agreement", source: "Document" },
+    { label: "Amortization schedule", source: "Schedule" },
+    { label: "Lender statement", source: "Document" },
+  ],
+};
+
+const RULE_BY_CATEGORY: Record<CloseCategory, string> = {
+  bank_recs: "bank feed matched to register; net difference $0.00",
+  revenue_recognition: "recognized entries tie to schedule; deferred rollforward balances",
+  expense_accruals: "recurring accruals present per pattern engine",
+  intercompany: "posted in both files; elimination entry balanced",
+  payroll: "Gusto runs reconciled to GL and tax liabilities",
+  prepaids: "amortization posted per schedule",
+  fixed_assets: "depreciation and additions tie to the subledger",
+  debt: "interest ties to the amortization schedule",
+};
+
+/** GL account this item traces back to. */
+export function getSourceRef(item: CloseChecklistItem): string {
+  return CATEGORY_GL[item.category];
+}
+
+/** Supporting documents backing an item; the QBO source carries the GL ref. */
+export function getSupportingDocs(item: CloseChecklistItem): SupportingDoc[] {
+  return CATEGORY_DOCS[item.category].map((d) =>
+    d.source === "QuickBooks" ? { ...d, ref: CATEGORY_GL[item.category] } : d
+  );
+}
+
+/** Immutable per-item event history for the audit trail. */
+export function getItemAuditTrail(item: CloseChecklistItem): AuditEvent[] {
+  const events: AuditEvent[] = [
+    { ts: "2026-07-01T06:02:00Z", actor: "LunarLogic Automation", event: "Source data synced from QuickBooks" },
+  ];
+  if (item.status === "auto_completed") {
+    events.push({
+      ts: item.completion_timestamp ?? "2026-07-01T06:20:00Z",
+      actor: "LunarLogic Automation",
+      event: `Rule passed — ${RULE_BY_CATEGORY[item.category]}; auto-completed with evidence`,
+    });
+    events.push({ ts: closeMeta.lockedAt, actor: closeMeta.reviewer, event: "Reviewed and included in the locked close package" });
+  } else if (item.status === "needs_review") {
+    events.push({ ts: "2026-07-01T06:05:00Z", actor: "LunarLogic Automation", event: `Flagged for review — ${item.flagReason ?? "exception raised"}` });
+    events.push({ ts: "2026-07-03T10:15:00Z", actor: item.assigned_to, event: "Assigned to reviewer — pending decision" });
+  } else if (item.status === "in_progress") {
+    events.push({ ts: "2026-07-02T14:30:00Z", actor: item.assigned_to, event: "In progress — gathering supporting documentation" });
+  } else {
+    events.push({ ts: "2026-07-01T06:05:00Z", actor: "LunarLogic Automation", event: "Awaiting prerequisite / supporting document" });
+  }
+  return events;
+}
