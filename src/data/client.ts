@@ -5,6 +5,6 @@
 export const demoClient = {
   name: "Vanguard Holdings Group",
   environmentLabel: "LunarLogic Demo Environment",
-  contact: "Amy Chen — CFO",
+  contact: "Amy Phillips — VP, Accounting & Finance",
   fiscalYearEnd: "December 31",
 } as const;

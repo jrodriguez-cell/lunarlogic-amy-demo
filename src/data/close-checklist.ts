@@ -46,7 +46,7 @@ export interface CloseChecklistItem {
 export const closePeriod = "2026-06";
 
 const AUTOMATION = "LunarLogic Automation";
-const CFO = "Amy Chen (CFO)";
+const VP_FINANCE = "Amy Phillips (VP, Accounting & Finance)";
 const CONTROLLER = "Marcus Webb (Controller)";
 const ACCOUNTANT = "Priya Nair (Staff Accountant)";
 
@@ -107,12 +107,12 @@ export const closeChecklist: CloseChecklistItem[] = [
     name: "Recognize milestone revenue — Sterling Manufacturing (Jun $36K)",
     category: "revenue_recognition",
     status: "needs_review",
-    assigned_to: CFO,
+    assigned_to: VP_FINANCE,
     notes:
-      "Final milestone billed 6/15 but two acceptance items still open with client. Percent-complete vs. point-in-time recognition needs CFO sign-off before booking.",
+      "Final milestone billed 6/15 but two acceptance items still open with client. Percent-complete vs. point-in-time recognition needs VP sign-off before booking.",
     completion_timestamp: null,
     amount: 36000,
-    flagReason: "Recognition method needs CFO sign-off (2 acceptance items open)",
+    flagReason: "Recognition method needs VP sign-off (2 acceptance items open)",
   },
   {
     id: "CLS-07",
@@ -211,9 +211,9 @@ export const closeChecklist: CloseChecklistItem[] = [
     name: "Allocate shared IT / admin costs",
     category: "intercompany",
     status: "needs_review",
-    assigned_to: CFO,
+    assigned_to: VP_FINANCE,
     notes:
-      "Allocation basis (headcount vs. revenue) changed this quarter. June IC-ALLOC amount ($3,450 provisional) unconfirmed — needs CFO approval before eliminating.",
+      "Allocation basis (headcount vs. revenue) changed this quarter. June IC-ALLOC amount ($3,450 provisional) unconfirmed — needs VP approval before eliminating.",
     completion_timestamp: null,
     amount: 3450,
     flagReason: "IT/admin allocation basis changed — amount unconfirmed",
@@ -364,7 +364,7 @@ export const closeChecklist: CloseChecklistItem[] = [
     name: "Loan balance confirmation vs. lender statement",
     category: "debt",
     status: "not_started",
-    assigned_to: CFO,
+    assigned_to: VP_FINANCE,
     notes:
       "Awaiting First Meridian Bank June statement to confirm outstanding principal before finalizing the covenant certificate.",
     completion_timestamp: null,
@@ -532,7 +532,7 @@ export const closeMeta = {
   timeSavedHours: 34,
   preparer: "LunarLogic Automation · Priya Nair",
   reviewer: "Marcus Webb (Controller)",
-  approver: "Amy Chen (CFO)",
+  approver: "Amy Phillips (VP, Accounting & Finance)",
   dateCompleted: "2026-07-03",
   entity: "Vanguard Digital LLC",
   // Period lock / tamper-evidence for the audit package
