@@ -4,13 +4,17 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { ForecastTab } from "@/components/forecast/forecast-tab";
+import { ARCollectionTab } from "@/components/forecast/ar-collection-tab";
+import { ExpenseSignalsTab } from "@/components/forecast/expense-signals-tab";
 import { PatternsTab } from "@/components/forecast/patterns-tab";
 import { AccuracyTab } from "@/components/forecast/accuracy-tab";
 
-type TabKey = "forecast" | "patterns" | "accuracy";
+type TabKey = "forecast" | "ar" | "expenses" | "patterns" | "accuracy";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "forecast", label: "Forecast" },
+  { key: "ar", label: "AR Collection" },
+  { key: "expenses", label: "Expense Signals" },
   { key: "patterns", label: "Patterns" },
   { key: "accuracy", label: "Accuracy" },
 ];
@@ -47,6 +51,8 @@ export function ForecastView() {
       </div>
 
       {tab === "forecast" && <ForecastTab />}
+      {tab === "ar" && <ARCollectionTab />}
+      {tab === "expenses" && <ExpenseSignalsTab />}
       {tab === "patterns" && <PatternsTab />}
       {tab === "accuracy" && <AccuracyTab />}
     </div>
